@@ -1,19 +1,22 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import './index.css';
-import App from './App';
-import reportWebVitals from './reportWebVitals';
+import './techat.css';
+import Router from './routes/Router';
+import { RouterProvider } from 'react-router-dom'
+import { SnackbarProvider } from 'notistack';
+import MSG from './MSG';
+
 
 const root = ReactDOM.createRoot(
   document.getElementById('root') as HTMLElement
 );
-root.render(
-  <React.StrictMode>
-    <App />
-  </React.StrictMode>
-);
 
-// If you want to start measuring performance in your app, pass a function
-// to log results (for example: reportWebVitals(console.log))
-// or send to an analytics endpoint. Learn more: https://bit.ly/CRA-vitals
-reportWebVitals();
+root.render(
+  <React.Fragment>
+    <SnackbarProvider maxSnack={5} anchorOrigin={{ vertical: 'top', horizontal: 'center' }} autoHideDuration={2000}>
+      <MSG />
+      <RouterProvider router={Router} />
+    </SnackbarProvider>
+  </React.Fragment>
+);

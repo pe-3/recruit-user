@@ -1,0 +1,11 @@
+.note {
+    font-size: 1rem;
+    margin-bottom: 3rem;
+}
+
+.note {
+    line-height: 1.35;
+    color: rgb(112, 117, 121);
+    text-align: center;
+    padding: 0 1rem;
+}
