@@ -7,6 +7,7 @@ import StepContent from '@mui/material/StepContent';
 import Typography from '@mui/material/Typography';
 import acat from '../../requests';
 import { message } from '../../MSG';
+import debounce from '../../funcs/debounce';
 
 const steps = [
     {
@@ -63,40 +64,45 @@ export default function ResSteper() {
     const [activeStep, setActiveStep] = React.useState(0);
     const [curStep, setStep] = React.useState(steps);
 
-    acat.getInterRes().then(() => {
-        let { msg, code, data } = acat.getData('getInterRes');
-        code && message.error(msg);
-        console.log(data);
-        if (data.first_isCommit === '1') {
-            if (data.first_ispass === false) {
-                setStep(failsteps);
-            }
-            if (data.first_ispass === undefined) {
-                setStep(staySteps);
-            }
-            setActiveStep(0);
-        } else if (data.first_isCommit === '0') {
-            setStep(staySteps);
-        }
-        if (data.second_isCommit === '1') {
-            if (data.second_ispass === false) {
-                setStep(failsteps);
-            }
-            if (data.second_ispass === undefined) {
-                setStep(staySteps);
-            }
-            setActiveStep(1);
-        }
-        if (data.third_isCommit === '1') {
-            if (data.third_ispass === false) {
-                setStep(failsteps);
-            }
-            if (data.third_ispass === undefined) {
-                setStep(staySteps);
-            }
-            setActiveStep(2);
-        } 
-    })
+    React.useEffect(() => {
+        debounce(() => {
+            return acat.getInterRes().then(() => {
+                let { msg, code, data } = acat.getData('getInterRes');
+                code && message.error(msg);
+                if (data.first_isCommit === '1') {
+                    if (data.first_ispass === false) {
+                        setStep(failsteps);
+                    }
+                    if (data.first_ispass === undefined) {
+                        setStep(staySteps);
+                    }
+                    setActiveStep(0);
+                } else if (data.first_isCommit === '0') {
+                    setStep(staySteps);
+                }
+                if (data.second_isCommit === '1') {
+                    if (data.second_ispass === false) {
+                        setStep(failsteps);
+                    }
+                    if (data.second_ispass === undefined) {
+                        setStep(staySteps);
+                    }
+                    setActiveStep(1);
+                }
+                if (data.third_isCommit === '1') {
+                    if (data.third_ispass === false) {
+                        setStep(failsteps);
+                    }
+                    if (data.third_ispass === undefined) {
+                        setStep(staySteps);
+                    }
+                    setActiveStep(2);
+                }
+                throw msg;
+            })
+        })()
+        return () => undefined
+    }, [])
 
     return (
         <Box sx={{ maxWidth: 400 }}>

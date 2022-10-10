@@ -1,5 +1,5 @@
 import routes from "./routes";
-import { createBrowserRouter, useOutlet, useLocation } from 'react-router-dom'
+import { useOutlet, useLocation, createHashRouter } from 'react-router-dom'
 import { SwitchTransition, CSSTransition } from "react-transition-group";
 
 function Temp() {
@@ -28,7 +28,7 @@ function Temp() {
   );
 }
 
-const Router = createBrowserRouter([
+const Router = createHashRouter([
   {
     path: '/',
     element: <Temp />,

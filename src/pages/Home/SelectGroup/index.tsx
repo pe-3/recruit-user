@@ -2,11 +2,10 @@ import qs, { ParsedQs } from 'qs';
 import { useState } from 'react'
 import { useLocation } from 'react-router-dom';
 import $bus from '../../../bus';
-import Logo from '../../../components/Logo';
 import MyBtn from '../../../components/MyBtn'
 import MySelect from '../../../components/MySelect';
-import SettingItemHeader from '../../../components/SettingItemHeader';
 import WishSelector from '../../../components/WishSelector'
+import debounce from '../../../funcs/debounce';
 import { message } from '../../../MSG';
 import acat from '../../../requests';
 import { changeHandler } from '../../Login';
@@ -28,18 +27,12 @@ export default function SelectGroup() {
   }
 
   const userInfo = JSON.parse(localStorage.getItem('userInfo') as string);
-  const [wish, setWish] = useState(userInfo.wish === undefined ? 0 : userInfo.wish);
-  const [stop, setStop] = useState(false);
+  const [wish, setWish] = useState(userInfo?.wish === undefined ? 0 : userInfo.wish);
+  const [stop, setStop] = useState(localStorage.getItem('isLock') === 'true');
+
   return (
     <div>
-      <SettingItemHeader label={(
-        <div className='backlog'>
-          <Logo size={32} mr='10px' />
-          <span>很多时候选择大于努力</span>
-        </div>
-      )} />
       <WishSelector stop={stop} wish={wish} />
-      <br />
       <MySelect
         label='选择方向'
         value={wish}
@@ -73,18 +66,18 @@ export default function SelectGroup() {
       <MyBtn
         type={stop ? 'outlined' : 'contained'}
         onClick={
-          () => {
+          debounce(() => {
             setStop((stop) => !stop);
-            if (stop) { return; }
+            if (stop) { return localStorage.removeItem('isLock'); }
             sendWish(wish);
             $bus.emit('reset-wish');
-          }
+          })
         }
       >{stop ? '再想想' : '就决定是这个方向了'}</MyBtn>
+
     </div>
   )
 }
-
 
 function sendWish(wish: number): void {
   acat.updateInf({
@@ -95,6 +88,10 @@ function sendWish(wish: number): void {
     let { code, msg } = acat.getData('updateInf');
     if (!code) {
       message.success(msg);
+      const userInfo = JSON.parse(localStorage.getItem('userInfo') as string);
+      userInfo.wish = wish;
+      localStorage.setItem('userInfo', JSON.stringify(userInfo));
+      localStorage.setItem('isLock', 'true');
     } else {
       message.error(msg);
     }

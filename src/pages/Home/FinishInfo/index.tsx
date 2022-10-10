@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import MyBtn from '../../../components/MyBtn'
 import MyInput from '../../../components/MyInput'
 import MySelect from '../../../components/MySelect'
@@ -15,15 +15,21 @@ import MenuIcon from '@mui/icons-material/Menu';
 import DropdownMenu, { ListItem } from '../../../components/DropdownMenu'
 import LogoutIcon from '@mui/icons-material/Logout';
 import { IconButton } from '@mui/material'
+import debounce from '../../../funcs/debounce'
+let clickHandler: (...args: any[]) => void = () => undefined;
 
 export default function FinishInfo() {
   const userInfo = JSON.parse(localStorage.getItem('userInfo') as string);
-  const { userid, email } = userInfo;
-  const [name, setName] = useState<string>(userInfo.name);
-  const [gender, setGender] = useState<boolean>(userInfo.gender);
-  const [major, setMajor] = useState<string>(userInfo.major);
-  const [phone, setPhone] = useState<string>(userInfo.phone);
+  const { userid, email } = userInfo ?? {};
+  const [name, setName] = useState<string>(userInfo?.name);
+  const [gender, setGender] = useState<boolean>(userInfo?.gender);
+  const [major, setMajor] = useState<string>(userInfo?.major);
+  const [phone, setPhone] = useState<string>(userInfo?.phone);
   const navigate = useNavigate();
+  useEffect(() => {
+    clickHandler = debounce(UpdateInfo);
+    return () => { }
+  }, [])
   return (
     <div>
       <SettingItemHeader
@@ -94,7 +100,7 @@ export default function FinishInfo() {
       <MyBtn
         type='contained'
         onClick={
-          () => UpdateInfo({
+          () => clickHandler({
             userid,
             name,
             gender,
@@ -105,6 +111,7 @@ export default function FinishInfo() {
     </div>
   )
 }
+
 type Props = {
   userid: string,
   name: string,
@@ -131,7 +138,7 @@ function UpdateInfo(props: Props) {
     return message.default('暂无更改');
   }
 
-  acat.updateInf({
+  return acat.updateInf({
     data: props
   }).then(() => {
     let { msg, code, data } = acat.getData('updateInf');
@@ -140,5 +147,6 @@ function UpdateInfo(props: Props) {
       localStorage.setItem('isComplete', String(data.complete));
     }
     code ? message.error(msg) : message.success(msg);
+    throw msg
   })
 }

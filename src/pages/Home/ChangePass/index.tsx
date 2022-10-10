@@ -1,16 +1,23 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import BackHeader from '../../../components/BackHeader'
 import MyBtn from '../../../components/MyBtn'
 import MyInput from '../../../components/MyInput'
+import debounce from '../../../funcs/debounce';
 import { message } from '../../../MSG';
 import acat from '../../../requests';
 import { changeHandler } from '../../Login';
+let clickHandler: (...args: any[]) => void = () => undefined;
 
 export default function ChangePass() {
     const [userid, setUserid] = useState('');
     const [password, setPass] = useState('');
     const [new_password, setNewPass] = useState('');
     const [confirm, setConfirm] = useState('');
+    useEffect(() => {
+        clickHandler = debounce(resetPass);
+        return () => { }
+    }, [])
+
     const contrastPass = (): boolean => {
         if (new_password !== confirm) {
             setPass(''); setNewPass('');
@@ -26,7 +33,11 @@ export default function ChangePass() {
             <MyInput label='原密码' onChange={changeHandler(setPass)} />
             <MyInput label='密码' passsafe onChange={changeHandler(setNewPass)} />
             <MyInput label='确认密码' passsafe onChange={changeHandler(setConfirm)} />
-            <MyBtn type='contained' onClick={() => resetPass({ userid, password, new_password, confirm }, contrastPass)}>重置密码</MyBtn>
+            <MyBtn type='contained' onClick={
+                debounce(
+                    () =>
+                        clickHandler({ userid, password, new_password, confirm }, contrastPass)
+                )}>重置密码</MyBtn>
         </div>
     )
 }
@@ -51,11 +62,11 @@ function resetPass(props: Reset, callBack: () => boolean) {
         return;
     }
 
-    acat.resetPass({
+    return acat.resetPass({
         data: props
     }).then(() => {
         let { msg, code } = acat.getData('resetPass');
         code ? message.error(msg) : message.success(msg);
-        
+        throw msg;
     })
 }

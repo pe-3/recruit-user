@@ -1,13 +1,15 @@
 import qs, { ParsedQs } from "qs";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import BackHeader from "../../../components/BackHeader";
 import MailShow from "../../../components/MailShow";
 import MyBtn from "../../../components/MyBtn";
 import MyInput from "../../../components/MyInput";
+import debounce from "../../../funcs/debounce";
 import { message } from "../../../MSG";
 import acat from "../../../requests";
 import { changeHandler } from "../../Login";
+let clickHandler: (...args: any[]) => void = () => undefined;
 
 export default function ResetMail() {
     const location = useLocation();
@@ -19,6 +21,11 @@ export default function ResetMail() {
     const [code, setCode] = useState<string>('');
     const [account, setAccount] = useState<string>('');
     const [pass, setPass] = useState<string>('');
+    
+    useEffect(() => {
+        clickHandler = debounce(resetmail);
+        return () => { }
+    }, [])
 
     return (
         <div className="auth-home">
@@ -28,7 +35,7 @@ export default function ResetMail() {
             <MyInput label='账户' onChange={changeHandler(setAccount)} />
             <MyInput label='密码' onChange={changeHandler(setPass)} passsafe />
             <MyBtn type='contained' onClick={
-                () => resetmail({
+                () => clickHandler({
                     verifyCode: code,
                     userid: account,
                     password: pass,
@@ -54,7 +61,7 @@ function resetmail(props: Props) {
         }
     }
 
-    acat.resetEmail({
+    return acat.resetEmail({
         data: props
     }).then(() => {
         let { msg, code } = acat.getData('resetEmail');
@@ -63,6 +70,8 @@ function resetmail(props: Props) {
             const userInfo = JSON.parse(localStorage.getItem('userInfo') as string);
             userInfo.email = props.newEmail;
             localStorage.setItem('userInfo', JSON.stringify(userInfo));
+        } else {
+            throw msg
         }
     })
 }

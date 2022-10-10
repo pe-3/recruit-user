@@ -9,7 +9,6 @@ import KeyboardArrowLeft from '@mui/icons-material/KeyboardArrowLeft';
 import KeyboardArrowRight from '@mui/icons-material/KeyboardArrowRight';
 import SwipeableViews from 'react-swipeable-views';
 import { autoPlay } from 'react-swipeable-views-utils';
-import { Card } from '@mui/material';
 import $bus from '../../bus';
 
 const AutoPlaySwipeableViews = autoPlay(SwipeableViews);
@@ -67,7 +66,36 @@ function WishSelector(props: { stop?: boolean, wish: number }) {
     })
 
     return (
-        <Card sx={{ maxWidth: 400, flexGrow: 1 }}>
+        <Box sx={{ maxWidth: '95%', flexGrow: 1, m: '0 auto'}}>
+            <MobileStepper
+                steps={maxSteps}
+                position="static"
+                activeStep={activeStep}
+                nextButton={
+                    <Button
+                        size="small"
+                        onClick={handleNext}
+                        disabled={activeStep === maxSteps - 1}
+                    >
+                        下一个
+                        {theme.direction === 'rtl' ? (
+                            <KeyboardArrowLeft />
+                        ) : (
+                            <KeyboardArrowRight />
+                        )}
+                    </Button>
+                }
+                backButton={
+                    <Button size="small" onClick={handleBack} disabled={activeStep === 0}>
+                        {theme.direction === 'rtl' ? (
+                            <KeyboardArrowRight />
+                        ) : (
+                            <KeyboardArrowLeft />
+                        )}
+                        上一个
+                    </Button>
+                }
+            />
             <AutoPlaySwipeableViews
                 axis={theme.direction === 'rtl' ? 'x-reverse' : 'x'}
                 index={activeStep}
@@ -109,36 +137,8 @@ function WishSelector(props: { stop?: boolean, wish: number }) {
             >
                 <Typography>{images[activeStep].label}</Typography>
             </Paper>
-            <MobileStepper
-                steps={maxSteps}
-                position="static"
-                activeStep={activeStep}
-                nextButton={
-                    <Button
-                        size="small"
-                        onClick={handleNext}
-                        disabled={activeStep === maxSteps - 1}
-                    >
-                        下一个
-                        {theme.direction === 'rtl' ? (
-                            <KeyboardArrowLeft />
-                        ) : (
-                            <KeyboardArrowRight />
-                        )}
-                    </Button>
-                }
-                backButton={
-                    <Button size="small" onClick={handleBack} disabled={activeStep === 0}>
-                        {theme.direction === 'rtl' ? (
-                            <KeyboardArrowRight />
-                        ) : (
-                            <KeyboardArrowLeft />
-                        )}
-                        上一个
-                    </Button>
-                }
-            />
-        </Card>
+
+        </Box>
     );
 }
 

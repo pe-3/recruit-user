@@ -5,10 +5,14 @@ import { useLocation, useNavigate, NavigateFunction } from 'react-router-dom'
 import qs, { ParsedQs } from 'qs'
 import MyInput from '../../components/MyInput'
 import MyBtn from '../../components/MyBtn'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { message } from '../../MSG'
 import acat from '../../requests'
 import ScrollBar from '../../components/ScrollBar'
+import debounce from '../../funcs/debounce'
+
+let clickHandler: (...args: any[]) => void = () => undefined;
+
 export default function CodeIn() {
     const location = useLocation();
     const searchstr: string = location.search;
@@ -21,10 +25,16 @@ export default function CodeIn() {
     const [passconfirm, setPassconfirm] = useState<string>('');
     const changeHandler = (setVal: React.Dispatch<React.SetStateAction<string>>) => { return (e: { target: { value: any } }) => { setVal(e.target.value) } }
     const clearPass = () => { setPass(''); setPassconfirm(''); }
+
+    useEffect(() => {
+        clickHandler = debounce(signup);
+        return () => undefined;
+    }, [])
+
     return (
         <ScrollBar className='auth-form'>
             <MyAvatar size={160} isCenter style={{ marginTop: '-2rem' }} />
-            <MailShow mail={mail} onClick={() => navigate('../')} />
+            <MailShow mail={mail} onClick={() => navigate('../sign')} />
             <Note note="我们已经给你的邮箱发送了验证码，请不要告诉他人" />
             <form>
                 <MyInput label='验证码' name='code' onChange={changeHandler(setCode)} />
@@ -35,14 +45,14 @@ export default function CodeIn() {
             <MyBtn
                 className='input-item'
                 type='contained'
-                onClick={
-                    () => signup({
+                onClick={debounce(
+                    () => clickHandler({
                         verifyCode: code,
                         email: mail as string,
                         userid: account,
                         password: pass,
                         passconfirm
-                    }, clearPass, navigate)}
+                    }, clearPass, navigate))}
             >下一步</MyBtn>
         </ScrollBar>
     )
@@ -68,7 +78,7 @@ function signup(props: Props, callback: () => void, nav: NavigateFunction) {
     }
     delete props.passconfirm
 
-    acat.signup({
+    return acat.signup({
         data: props
     }).then(() => {
         let { msg, code } = acat.getData('signup')?.signResult;
@@ -77,6 +87,7 @@ function signup(props: Props, callback: () => void, nav: NavigateFunction) {
             nav('../');
         } else {
             message.error(msg);
+            throw msg;
         }
     })
 }
